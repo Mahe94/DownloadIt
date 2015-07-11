@@ -9,6 +9,7 @@ Email : mahepj94@gmail.com
 from bs4 import BeautifulSoup
 from PyQt4 import QtGui
 import requests
+import signal
 import sys
 import os
 import re
@@ -49,11 +50,17 @@ class Example(QtGui.QWidget):
         self.show()
     	
     def start_download(self):
-    	newpid = os.fork()
-	if newpid != 0:
+    	self.child_pid = os.fork()
+	if self.child_pid != 0:
 		self.okButton.setText("Cancel Download")
+		self.okButton.clicked.connect(self.cancel_download)
 	else:
 		self.download()
+		
+    def cancel_download(self):
+   	os.kill(self.child_pid, signal.SIGTERM)
+	self.okButton.setText("OK")
+	self.okButton.clicked.connect(self.start_download)
         
     def download(self):
     
