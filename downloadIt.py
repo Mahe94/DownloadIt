@@ -1,40 +1,101 @@
+#!/usr/bin/env python
+
+"""
+Download-It
+Author : Mahesh S.R
+Email : mahepj94@gmail.com
+"""
+
 from bs4 import BeautifulSoup
+from PyQt4 import QtGui
 import requests
+import sys
 import os
 import re
 
-base_url = "http://www.gamethemesongs.com/"
+class Example(QtGui.QWidget):
+    
+    def __init__(self):
+        super(Example, self).__init__()
+        
+        self.initUI()
+        
+    def initUI(self):
+        
+        url = QtGui.QLabel('Website')
+        album = QtGui.QLabel('Album')
+        
+        self.okButton = QtGui.QPushButton("OK")
+        self.okButton.clicked.connect(self.start_download)
+        
+        self.urlEdit = QtGui.QLineEdit()
+        self.albumEdit = QtGui.QLineEdit()
 
-url = raw_input("Enter a website to extract the URL's from:")
+        grid = QtGui.QGridLayout()
+        grid.setSpacing(10)
 
-if("http://" not in url):
-	r  = requests.get("http://" + url)
-else:
-	r  = requests.get(url)
+        grid.addWidget(url, 1, 0)
+        grid.addWidget(self.urlEdit, 1, 1)
 
-data = r.text
-soup = BeautifulSoup(data, "lxml")
+        grid.addWidget(album, 2, 0)
+        grid.addWidget(self.albumEdit, 2, 1)
 
-album = raw_input("Enter the name of the game:")
+        grid.addWidget(self.okButton, 3, 1)
+        
+        self.setLayout(grid) 
+        
+        self.setGeometry(300, 300, 350, 300)
+        self.setWindowTitle('Download-It')    
+        self.show()
+    	
+    def start_download(self):
+    	newpid = os.fork()
+	if newpid != 0:
+		self.okButton.setText("Cancel Download")
+	else:
+		self.download()
+        
+    def download(self):
+    
+    	url = str(self.urlEdit.displayText())
+    	album = str(self.albumEdit.displayText())
+        
+        base_url = "http://www.gamethemesongs.com/"
 
-album_folder = re.escape(album)
 
-os.system("mkdir " + album_folder)
+	if("http://" not in url):
+		r  = requests.get("http://" + url)
+	else:
+		r  = requests.get(url)
 
-for sound in soup.find_all('a'):
-	if(album in sound.get_text()):		
-		r  = requests.get(sound.get("href"))
+	data = r.text
+	soup = BeautifulSoup(data, "lxml")
+
+	album_folder = re.escape(album)
+
+	os.system("mkdir " + album_folder)
+
+	for sound in soup.find_all('a'):
+		if(album in sound.get_text()):		
+			r  = requests.get(sound.get("href"))
 		
-		new_data = r.text
-		new_soup = BeautifulSoup(new_data, "lxml")
+			new_data = r.text
+			new_soup = BeautifulSoup(new_data, "lxml")
 		
-		download_link = new_soup.find_all("a", "download")[0].get("href")
+			download_link = new_soup.find_all("a", "download")[0].get("href")
 		
-		file_name = download_link.replace("download.php?f=", "")
+			file_name = download_link.replace("download.php?f=", "")
 		
-		print(file_name)
+			os.system("wget -O " + album_folder + "/" + file_name + " " + base_url + download_link)
 		
-		os.system("wget -O " + album_folder + "/" + file_name + " " + base_url + download_link)
-		
-print("------------COMPLETED-----------")
+
+
+def main():
+    
+    app = QtGui.QApplication(sys.argv)
+    ex = Example()
+    sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    main()
 
