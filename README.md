@@ -1,5 +1,5 @@
 # DownloadIt
-Python script to download audio files from http://www.gamethemesongs.com. This script is intented for Linux only.  
+Python script to download the complete audio files of any game present in http://www.gamethemesongs.com. This script is intented for Linux only.  
 
 ## Installation
 Open the folder containing the downloadIt.py script. Open terminal and type the following command  
